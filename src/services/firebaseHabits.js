@@ -1,29 +1,40 @@
-import { db } from '../firebaseConfig'
-import { collection, addDoc, getDocs, updateDoc, deleteDoc, doc } from 'firebase/firestore'
+import { db } from '../firebaseConfig';
+import {
+  collection,
+  addDoc,
+  getDocs,
+  updateDoc,
+  deleteDoc,
+  doc
+} from 'firebase/firestore';
+import { getAuth } from 'firebase/auth';
 
-// Colección base
-const HABITS_COLLECTION = 'habitos'
+const getUserHabitsCollection = () => {
+  const user = getAuth().currentUser;
+  if (!user) throw new Error('Usuario no autenticado');
+  return collection(db, 'usuarios', user.uid, 'habitos');
+};
 
-// Agregar un nuevo hábito
 export const crearHabito = async (habito) => {
-  const docRef = await addDoc(collection(db, HABITS_COLLECTION), habito)
-  return { ...habito, id: docRef.id }
-}
+  const ref = getUserHabitsCollection();
+  const docRef = await addDoc(ref, habito);
+  return { ...habito, id: docRef.id };
+};
 
-// Obtener todos los hábitos
 export const obtenerHabitos = async () => {
-  const snapshot = await getDocs(collection(db, HABITS_COLLECTION))
-  return snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }))
-}
+  const ref = getUserHabitsCollection();
+  const snapshot = await getDocs(ref);
+  return snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+};
 
-// Actualizar un hábito por ID
 export const actualizarHabito = async (id, datos) => {
-  const ref = doc(db, HABITS_COLLECTION, id)
-  await updateDoc(ref, datos)
-}
+  const uid = getAuth().currentUser.uid;
+  const ref = doc(db, 'usuarios', uid, 'habitos', id);
+  await updateDoc(ref, datos);
+};
 
-// Eliminar un hábito por ID
 export const eliminarHabito = async (id) => {
-  const ref = doc(db, HABITS_COLLECTION, id)
-  await deleteDoc(ref)
-}
+  const uid = getAuth().currentUser.uid;
+  const ref = doc(db, 'usuarios', uid, 'habitos', id);
+  await deleteDoc(ref);
+};

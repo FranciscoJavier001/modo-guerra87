@@ -1,6 +1,7 @@
 // Configura esto con tus datos de Firebase
 import { initializeApp } from "firebase/app";
 import { getFirestore } from "firebase/firestore";
+export { app }
 
 const firebaseConfig = {
   apiKey: "AIzaSyCPOnHyzdRFlkRzI7SSmsuSy6_NiMNYFAw",
