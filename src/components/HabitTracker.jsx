@@ -3,9 +3,9 @@ import { actualizarHabito } from '../services/firebaseHabits';
 
 const getLast10Days = () => {
   const today = new Date();
-  return Array.from({ length: 19 }, (_, i) => {
+  return Array.from({ length: 15 }, (_, i) => {
     const d = new Date();
-    d.setDate(today.getDate() - (9 - i));
+    d.setDate(today.getDate() - (14 - i));
     return d.toISOString().split('T')[0];
   });
 };
@@ -43,7 +43,7 @@ function HabitTracker({ habit, onUpdateLocal }) {
   };
 
   return (
-    <div className="flex gap-1 mt-2">
+    <div className="flex gap-1 mt-2 ">
       {dias.map(fecha => {
         const estado = habit.registros?.[fecha];
         const color =
