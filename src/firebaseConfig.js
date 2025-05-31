@@ -9,7 +9,6 @@ const firebaseConfig = {
   storageBucket: "modo-guerra87.firebasestorage.app",
   messagingSenderId: "512556279663",
   appId: "1:512556279663:web:33e2d2762990d5aa98ea9a",
-  measurementId: "G-QKMDKLV5YP"
 };
 
 const app = initializeApp(firebaseConfig);
