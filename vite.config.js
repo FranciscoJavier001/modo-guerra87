@@ -10,7 +10,7 @@ export default defineConfig({
   includeAssets: ['favicon.svg', 'icon-192.png', 'icon-512.png'],
   manifest: {
     name: 'Mis Hábitos',
-    short_name: 'Hábitos',
+    short_name: 'Modo Guerra',
     start_url: '.',
     display: 'standalone',
     background_color: '#ffffff',
