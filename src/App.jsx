@@ -6,6 +6,8 @@ import {
   eliminarHabito
 } from './services/firebaseHabits';
 import HabitTracker from './components/HabitTracker';
+import Logout from './components/Logout';
+
 
 function App() {
   const [habitos, setHabitos] = useState([]);
@@ -49,45 +51,49 @@ function App() {
   };
 
   return (
-    <div className="p-4 max-w-xl mx-auto">
-      <h1 className="text-2xl font-bold mb-4">Mis Hábitos (sincronizados)</h1>
-      <div className="mb-4">
-        <input
-          value={nuevoHabito}
-          onChange={(e) => setNuevoHabito(e.target.value)}
-          placeholder="Nuevo hábito"
-          className="border px-2 py-1 mr-2 rounded"
-        />
-        <button
-          onClick={agregarHabito}
-          className="bg-blue-500 text-white px-4 py-1 rounded"
-        >
-          Agregar
-        </button>
-      </div>
-      {habitos.map(h => (
-        <div key={h.id} className="bg-white shadow p-3 rounded mb-4">
-          <div className="flex justify-between items-center">
-            <input
-              value={h.nombre}
-              onChange={(e) => editarHabito(h.id, e.target.value)}
-              className="border-b w-full text-lg font-medium"
-            />
-            <button
-              onClick={() => borrarHabito(h.id)}
-              className="text-red-500 text-sm ml-2"
-            >
-              Eliminar
-            </button>
-          </div>
-          <HabitTracker habit={h} onUpdateLocal={actualizarLocalmente} />
-          <div className="text-sm text-gray-500 mt-2">
-            ✅ {h.resumen?.completados || 0} ❌ {h.resumen?.fallados || 0} 🚫 {h.resumen?.saltados || 0} 📅 {h.resumen?.diasTotales || 0}
-          </div>
-        </div>
-      ))}
+  <div className="p-4 max-w-xl mx-auto">
+
+    <h1 className="text-2xl font-bold mb-4">Mis Hábitos (sincronizados)</h1>
+
+    <div className="mb-4">
+      <input
+        value={nuevoHabito}
+        onChange={(e) => setNuevoHabito(e.target.value)}
+        placeholder="Nuevo hábito"
+        className="border px-2 py-1 mr-2 rounded w-full"
+      />
+      <button
+        onClick={agregarHabito}
+        className="bg-blue-500 text-white px-4 py-1 rounded w-full"
+      >
+        Agregar
+      </button>
     </div>
-  );
+
+    {habitos.map(h => (
+      <div key={h.id} className="bg-white shadow p-3 rounded mb-4">
+        <div className="flex justify-between items-center">
+          <input
+            value={h.nombre}
+            onChange={(e) => editarHabito(h.id, e.target.value)}
+            className="border-b w-full text-lg font-medium"
+          />
+          <button
+            onClick={() => borrarHabito(h.id)}
+            className="text-red-500 text-sm ml-2"
+          >
+            Eliminar
+          </button>
+        </div>
+        <HabitTracker habit={h} onUpdateLocal={actualizarLocalmente} />
+        <div className="text-sm text-gray-500 mt-2">
+          ✅ {h.resumen?.completados || 0} ❌ {h.resumen?.fallados || 0} 🚫 {h.resumen?.saltados || 0} 📅 {h.resumen?.diasTotales || 0}
+        </div>
+      </div>
+    ))}
+    <Logout /> {/* Aquí va el botón de cerrar sesión */}
+  </div>
+);
 }
 
 export default App;
