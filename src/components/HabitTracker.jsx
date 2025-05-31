@@ -3,7 +3,7 @@ import { actualizarHabito } from '../services/firebaseHabits';
 
 const getLast10Days = () => {
   const today = new Date();
-  return Array.from({ length: 10 }, (_, i) => {
+  return Array.from({ length: 19 }, (_, i) => {
     const d = new Date();
     d.setDate(today.getDate() - (9 - i));
     return d.toISOString().split('T')[0];

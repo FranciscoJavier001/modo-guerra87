@@ -53,14 +53,14 @@ function App() {
   return (
   <div className="p-4 max-w-xl mx-auto">
 
-    <h1 className="text-2xl font-bold mb-4">Mis Hábitos (sincronizados)</h1>
+    <h1 className="text-2xl font-bold mb-4 text-center">Modo Guerra</h1>
 
     <div className="mb-4">
       <input
         value={nuevoHabito}
         onChange={(e) => setNuevoHabito(e.target.value)}
         placeholder="Nuevo hábito"
-        className="border px-2 py-1 mr-2 rounded w-full"
+        className="border px-2 py-1 mr-2 rounded w-full mb-2"
       />
       <button
         onClick={agregarHabito}
