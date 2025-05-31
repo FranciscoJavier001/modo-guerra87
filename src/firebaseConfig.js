@@ -3,12 +3,13 @@ import { initializeApp } from "firebase/app";
 import { getFirestore } from "firebase/firestore";
 
 const firebaseConfig = {
-  apiKey: "TU_API_KEY",
-  authDomain: "TU_DOMINIO",
-  projectId: "TU_PROJECT_ID",
-  storageBucket: "TU_BUCKET",
-  messagingSenderId: "TU_MENSAJERO",
-  appId: "TU_APP_ID"
+  apiKey: "AIzaSyCPOnHyzdRFlkRzI7SSmsuSy6_NiMNYFAw",
+  authDomain: "modo-guerra87.firebaseapp.com",
+  projectId: "modo-guerra87",
+  storageBucket: "modo-guerra87.firebasestorage.app",
+  messagingSenderId: "512556279663",
+  appId: "1:512556279663:web:33e2d2762990d5aa98ea9a",
+  measurementId: "G-QKMDKLV5YP"
 };
 
 const app = initializeApp(firebaseConfig);
