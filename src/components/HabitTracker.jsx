@@ -1,19 +1,25 @@
 import React from 'react';
 import { actualizarHabito } from '../services/firebaseHabits';
+import dayjs from 'dayjs';
+import utc from 'dayjs/plugin/utc';
+import tz from 'dayjs/plugin/timezone';
 
-const getLast10Days = () => {
-  const today = new Date();
-  return Array.from({ length: 15 }, (_, i) => {
-    const d = new Date();
-    d.setDate(today.getDate() - (14 - i));
-    return d.toISOString().split('T')[0];
-  });
++dayjs.extend(utc);
++dayjs.extend(tz);
+
+const ZONE = 'America/Mexico_City';   // cambia si lo necesitas
+
+const getLastNDays = (n = 15) => {
+  const base = dayjs().tz(ZONE).startOf('day');     // “hoy” local
+  return Array.from({ length: n }, (_, i) =>
+    base.subtract(n - 1 - i, 'day').format('YYYY-MM-DD')
+  );
 };
 
 const estados = ['completado', 'fallado', 'saltado'];
 
 function HabitTracker({ habit, onUpdateLocal }) {
-  const dias = getLast10Days();
+  const dias = getLastNDays(15);   // mismo número que antes
 
   const toggleDia = async (fecha) => {
     const actual = habit.registros?.[fecha];
