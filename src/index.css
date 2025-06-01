@@ -1,3 +1,14 @@
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+
+/* --- overrides globales --- */
+html,
+body {
+  @apply min-h-screen bg-black text-white;   /* fondo negro + texto blanco */
+}
+
+/* Si quieres que los enlaces sigan siendo azules: */
+a { @apply text-blue-400 hover:text-blue-300; }
+
+/* Si prefieres que TODO sea blanco salvo lo que especifiques, no pongas la regla de <a>. */
