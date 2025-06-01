@@ -26,7 +26,7 @@ function Login() {
   };
 
   return (
-    <div className="p-4 max-w-sm mx-auto mt-20 bg-white shadow rounded">
+    <div className="p-4 max-w-sm mx-auto bg-white shadow rounded">
       <h2 className="text-xl font-bold mb-4 text-center">
         {esNuevo ? 'Crear cuenta' : 'Iniciar sesión'}
       </h2>
