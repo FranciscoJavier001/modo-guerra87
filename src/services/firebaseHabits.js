@@ -5,7 +5,8 @@ import {
   getDocs,
   updateDoc,
   deleteDoc,
-  doc
+  doc,
+  writeBatch
 } from 'firebase/firestore';
 import { getAuth } from 'firebase/auth';
 
@@ -37,4 +38,16 @@ export const eliminarHabito = async (id) => {
   const uid = getAuth().currentUser.uid;
   const ref = doc(db, 'usuarios', uid, 'habitos', id);
   await deleteDoc(ref);
+};
+
+
+export const actualizarOrdenHabitos = async (items) => {
+  // items: [{id, orden}]
+  const uid = getAuth().currentUser.uid;
+  const batch = writeBatch(db);
+  for (const it of items) {
+    const ref = doc(db, 'usuarios', uid, 'habitos', it.id);
+    batch.update(ref, { orden: it.orden });
+  }
+  await batch.commit();
 };

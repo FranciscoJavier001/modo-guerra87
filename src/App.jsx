@@ -7,6 +7,8 @@ import {
 } from './services/firebaseHabits';
 import HabitTracker from './components/HabitTracker';
 import Logout from './components/Logout';
+import ExportCSV from './components/ExportCSV';
+import WeeklyStats from './components/WeeklyStats';
 
 
 function App() {
@@ -69,6 +71,7 @@ function App() {
         Agregar
       </button>
     </div>
+
 
     {habitos.map(h => (
       <div key={h.id} className="bg-white shadow p-3 rounded mb-4">
