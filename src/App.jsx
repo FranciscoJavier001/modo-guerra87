@@ -33,19 +33,6 @@ function App() {
     setConfirmOpen(true);
   };
 
-  const doDelete = async () => {
-    if (!habitToDelete) return;
-    try {
-      await eliminarHabito(habitToDelete.id);
-      setHabitos(prev => prev.filter(h => h.id !== habitToDelete.id));
-    } catch (e) {
-      alert('No se pudo eliminar: ' + (e?.message || String(e)));
-    } finally {
-      setConfirmOpen(false);
-      setHabitToDelete(null);
-    }
-  };
-
   const onDragStart = (index) => setDraggingIndex(index);
   const onDragOver = (e) => e.preventDefault();
   const onDragEnter = (index) => setHoverIndex(index);
