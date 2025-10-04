@@ -121,7 +121,7 @@ function App() {
                 className="text-red-600 hover:text-red-700 text-sm"
                 onClick={() => askDelete(h.id)}
               >
-                Eliminar
+                🗑️
               </button>
             )}
           </div>
