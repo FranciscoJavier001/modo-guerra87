@@ -98,12 +98,7 @@ function App() {
     setHabitos(actualizados);
     await actualizarHabito(id, { nombre: nuevoNombre });
   };
-
-  const borrarHabito = async (id) => {
-    await eliminarHabito(id);
-    setHabitos(habitos.filter(h => h.id !== id));
-  };
-
+  // (deshabilitado) borrarHabito ya no se usa; usamos handleDelete + ConfirmDialog
   const actualizarLocalmente = (actualizado) => {
     setHabitos(habitos.map(h => h.id === actualizado.id ? actualizado : h));
   };
@@ -177,7 +172,7 @@ function App() {
             className="border-b w-full text-lg font-medium"
           />
           <button
-            onClick={() => borrarHabito(h.id)}
+            onClick={() => handleDelete(h)}
             className="text-red-500 text-sm ml-2"
           >
             Eliminar
