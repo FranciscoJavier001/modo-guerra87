@@ -3,17 +3,72 @@ import {
   crearHabito,
   obtenerHabitos,
   actualizarHabito,
-  eliminarHabito
+  eliminarHabito,
+  actualizarOrdenHabitos
 } from './services/firebaseHabits';
 import HabitTracker from './components/HabitTracker';
+import ConfirmDialog from './components/ConfirmDialog';
+import DragHandle from './components/DragHandle';
 import Logout from './components/Logout';
-import ExportCSV from './components/ExportCSV';
-import WeeklyStats from './components/WeeklyStats';
 
 
 function App() {
   const [habitos, setHabitos] = useState([]);
   const [nuevoHabito, setNuevoHabito] = useState('');
+  const [confirmOpen, setConfirmOpen] = useState(false);
+  const [habitToDelete, setHabitToDelete] = useState(null);
+  const [allowDrag, setAllowDrag] = useState(false);
+  const [draggingIndex, setDraggingIndex] = useState(null);
+  const [hoverIndex, setHoverIndex] = useState(null);
+
+  const ordenarLocal = (arr) => {
+    return [...arr].sort((a,b) => {
+      const ao = (a.orden ?? 999999);
+      const bo = (b.orden ?? 999999);
+      if (ao !== bo) return ao - bo;
+    
+  const handleDelete = (habito) => {
+    setHabitToDelete(habito);
+    setConfirmOpen(true);
+  };
+
+  const doDelete = async () => {
+    if (!habitToDelete) return;
+    try {
+      await eliminarHabito(habitToDelete.id);
+      setHabitos(prev => prev.filter(h => h.id !== habitToDelete.id));
+    } catch (e) {
+      alert('No se pudo eliminar: ' + (e?.message || String(e)));
+    } finally {
+      setConfirmOpen(false);
+      setHabitToDelete(null);
+    }
+  };
+
+  const onDragStart = (index) => setDraggingIndex(index);
+  const onDragOver = (e) => e.preventDefault();
+  const onDragEnter = (index) => setHoverIndex(index);
+  const onDragLeave = () => setHoverIndex(null);
+
+  const onDrop = async (toIndex) => {
+    if (draggingIndex === null || draggingIndex === toIndex) return;
+    setHabitos(prev => {
+      const arr = [...prev];
+      const [moved] = arr.splice(draggingIndex, 1);
+      arr.splice(toIndex, 0, moved);
+      // recalcular orden localmente (0..n-1)
+      const withOrder = arr.map((h, i) => ({ ...h, orden: i }));
+      // persistir en firestore (no esperamos aquí)
+      actualizarOrdenHabitos(withOrder.map(h => ({ id: h.id, orden: h.orden }))).catch(() => {});
+      return withOrder;
+    });
+    setDraggingIndex(null);
+    setHoverIndex(null);
+  };
+
+  return (a.nombre||'').localeCompare(b.nombre||'');
+    });
+  };
 
   useEffect(() => {
     const cargar = async () => {
@@ -52,6 +107,46 @@ function App() {
     setHabitos(habitos.map(h => h.id === actualizado.id ? actualizado : h));
   };
 
+
+  const handleDelete = (habito) => {
+    setHabitToDelete(habito);
+    setConfirmOpen(true);
+  };
+
+  const doDelete = async () => {
+    if (!habitToDelete) return;
+    try {
+      await eliminarHabito(habitToDelete.id);
+      setHabitos(prev => prev.filter(h => h.id !== habitToDelete.id));
+    } catch (e) {
+      alert('No se pudo eliminar: ' + (e?.message || String(e)));
+    } finally {
+      setConfirmOpen(false);
+      setHabitToDelete(null);
+    }
+  };
+
+  const onDragStart = (index) => setDraggingIndex(index);
+  const onDragOver = (e) => e.preventDefault();
+  const onDragEnter = (index) => setHoverIndex(index);
+  const onDragLeave = () => setHoverIndex(null);
+
+  const onDrop = async (toIndex) => {
+    if (draggingIndex === null || draggingIndex === toIndex) return;
+    setHabitos(prev => {
+      const arr = [...prev];
+      const [moved] = arr.splice(draggingIndex, 1);
+      arr.splice(toIndex, 0, moved);
+      // recalcular orden localmente (0..n-1)
+      const withOrder = arr.map((h, i) => ({ ...h, orden: i }));
+      // persistir en firestore (no esperamos aquí)
+      actualizarOrdenHabitos(withOrder.map(h => ({ id: h.id, orden: h.orden }))).catch(() => {});
+      return withOrder;
+    });
+    setDraggingIndex(null);
+    setHoverIndex(null);
+  };
+
   return (
   <div className="p-4 max-w-xl mx-auto">
 
@@ -71,7 +166,6 @@ function App() {
         Agregar
       </button>
     </div>
-
 
     {habitos.map(h => (
       <div key={h.id} className="bg-white shadow p-3 rounded mb-4">
@@ -95,6 +189,18 @@ function App() {
       </div>
     ))}
     <Logout /> {/* Aquí va el botón de cerrar sesión */}
+    <ConfirmDialog
+      open={confirmOpen}
+      title="Eliminar hábito"
+      message={habitToDelete ? `Esta acción no se puede deshacer. Para confirmar, escribe el nombre del hábito exactamente como aparece:
+
+${habitToDelete.nombre || ''}` : ''}
+      expectedText={habitToDelete?.nombre || ''}
+      confirmLabel="Eliminar"
+      cancelLabel="Cancelar"
+      onConfirm={doDelete}
+      onCancel={() => { setConfirmOpen(false); setHabitToDelete(null); }}
+    />
   </div>
 );
 }
