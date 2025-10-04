@@ -1,192 +1,146 @@
+// src/App.jsx
 import React, { useEffect, useState } from 'react';
 import {
   crearHabito,
   obtenerHabitos,
   actualizarHabito,
-  eliminarHabito,
-  actualizarOrdenHabitos
+  eliminarHabito
 } from './services/firebaseHabits';
 import HabitTracker from './components/HabitTracker';
-import ConfirmDialog from './components/ConfirmDialog';
-import DragHandle from './components/DragHandle';
 import Logout from './components/Logout';
 import OfflineBanner from './components/OfflineBanner';
-
 
 function App() {
   const [habitos, setHabitos] = useState([]);
   const [nuevoHabito, setNuevoHabito] = useState('');
-  const [confirmOpen, setConfirmOpen] = useState(false);
-  const [habitToDelete, setHabitToDelete] = useState(null);
-  const [allowDrag, setAllowDrag] = useState(false);
-  const [draggingIndex, setDraggingIndex] = useState(null);
-  const [hoverIndex, setHoverIndex] = useState(null);
+  const [confirmingId, setConfirmingId] = useState(null); // ← confirmación en 2 pasos
 
-  const ordenarLocal = (arr) => {
-    return [...arr].sort((a,b) => {
-      const ao = (a.orden ?? 999999);
-      const bo = (b.orden ?? 999999);
-      if (ao !== bo) return ao - bo;
-    
-  const handleDelete = (habito) => {
-    setHabitToDelete(habito);
-    setConfirmOpen(true);
-  };
-
-  const onDragStart = (index) => setDraggingIndex(index);
-  const onDragOver = (e) => e.preventDefault();
-  const onDragEnter = (index) => setHoverIndex(index);
-  const onDragLeave = () => setHoverIndex(null);
-
-  const onDrop = async (toIndex) => {
-    if (draggingIndex === null || draggingIndex === toIndex) return;
-    setHabitos(prev => {
-      const arr = [...prev];
-      const [moved] = arr.splice(draggingIndex, 1);
-      arr.splice(toIndex, 0, moved);
-      // recalcular orden localmente (0..n-1)
-      const withOrder = arr.map((h, i) => ({ ...h, orden: i }));
-      // persistir en firestore (no esperamos aquí)
-      actualizarOrdenHabitos(withOrder.map(h => ({ id: h.id, orden: h.orden }))).catch(() => {});
-      return withOrder;
-    });
-    setDraggingIndex(null);
-    setHoverIndex(null);
-  };
-
-  return (a.nombre||'').localeCompare(b.nombre||'');
-    });
-  };
-
+  // Cargar hábitos
   useEffect(() => {
     const cargar = async () => {
       const datos = await obtenerHabitos();
-      setHabitos(datos);
+      setHabitos(datos || []);
     };
     cargar();
   }, []);
 
+  // Crear hábito
   const agregarHabito = async () => {
-    if (!nuevoHabito.trim()) return;
+    const nombre = (nuevoHabito || '').trim();
+    if (!nombre) return;
+
+    // Si tu crearHabito espera SOLO el nombre:
+    // const creado = await crearHabito(nombre);
+
+    // Si tu crearHabito espera el objeto completo (como lo tienes):
     const habitoObj = {
-      nombre: nuevoHabito.trim(),
+      nombre,
       registros: {},
       resumen: { completados: 0, fallados: 0, saltados: 0, diasTotales: 0 }
     };
     const creado = await crearHabito(habitoObj);
-    setHabitos([...habitos, creado]);
+
+    setHabitos(prev => [...prev, creado]);
     setNuevoHabito('');
   };
 
+  // Editar nombre
   const editarHabito = async (id, nuevoNombre) => {
-    const actualizados = habitos.map(h =>
-      h.id === id ? { ...h, nombre: nuevoNombre } : h
-    );
-    setHabitos(actualizados);
-    await actualizarHabito(id, { nombre: nuevoNombre });
+    const nombre = (nuevoNombre || '').trimStart(); // deja escribir, pero sin espacios iniciales
+    setHabitos(prev => prev.map(h => (h.id === id ? { ...h, nombre } : h)));
+    await actualizarHabito(id, { nombre });
   };
-  // (deshabilitado) borrarHabito ya no se usa; usamos handleDelete + ConfirmDialog
+
+  // Para que HabitTracker actualice localmente campos internos del hábito
   const actualizarLocalmente = (actualizado) => {
-    setHabitos(habitos.map(h => h.id === actualizado.id ? actualizado : h));
+    setHabitos(prev => prev.map(h => (h.id === actualizado.id ? actualizado : h)));
   };
 
-
-  const handleDelete = (habito) => {
-    setHabitToDelete(habito);
-    setConfirmOpen(true);
-  };
-
-  const doDelete = async () => {
-    if (!habitToDelete) return;
+  // --- Confirmación en dos pasos ---
+  const askDelete = (id) => setConfirmingId(id);
+  const cancelDelete = () => setConfirmingId(null);
+  const confirmDelete = async (id) => {
     try {
-      await eliminarHabito(habitToDelete.id);
-      setHabitos(prev => prev.filter(h => h.id !== habitToDelete.id));
+      await eliminarHabito(id);
+      setHabitos(prev => prev.filter(h => h.id !== id));
     } catch (e) {
       alert('No se pudo eliminar: ' + (e?.message || String(e)));
     } finally {
-      setConfirmOpen(false);
-      setHabitToDelete(null);
+      setConfirmingId(null);
     }
   };
 
-  const onDragStart = (index) => setDraggingIndex(index);
-  const onDragOver = (e) => e.preventDefault();
-  const onDragEnter = (index) => setHoverIndex(index);
-  const onDragLeave = () => setHoverIndex(null);
-
-  const onDrop = async (toIndex) => {
-    if (draggingIndex === null || draggingIndex === toIndex) return;
-    setHabitos(prev => {
-      const arr = [...prev];
-      const [moved] = arr.splice(draggingIndex, 1);
-      arr.splice(toIndex, 0, moved);
-      // recalcular orden localmente (0..n-1)
-      const withOrder = arr.map((h, i) => ({ ...h, orden: i }));
-      // persistir en firestore (no esperamos aquí)
-      actualizarOrdenHabitos(withOrder.map(h => ({ id: h.id, orden: h.orden }))).catch(() => {});
-      return withOrder;
-    });
-    setDraggingIndex(null);
-    setHoverIndex(null);
-  };
-
   return (
-  <div className="p-4 max-w-xl mx-auto">
+    <div className="p-4 max-w-xl mx-auto">
+      <h1 className="text-2xl font-bold mb-4 text-center">Modo Guerra</h1>
 
-    <h1 className="text-2xl font-bold mb-4 text-center">Modo Guerra</h1>
-
-    <div className="mb-4">
-      <input
-        value={nuevoHabito}
-        onChange={(e) => setNuevoHabito(e.target.value)}
-        placeholder="Nuevo hábito"
-        className="border px-2 py-1 mr-2 rounded w-full mb-2"
-      />
-      <button
-        onClick={agregarHabito}
-        className="bg-blue-500 text-white px-4 py-1 rounded w-full"
-      >
-        Agregar
-      </button>
-    </div>
-
-    {habitos.map(h => (
-      <div key={h.id} className="bg-white shadow p-3 rounded mb-4">
-        <div className="flex justify-between items-center">
-          <input
-            value={h.nombre}
-            onChange={(e) => editarHabito(h.id, e.target.value)}
-            className="border-b w-full text-lg font-medium"
-          />
-          <button
-            onClick={() => handleDelete(h)}
-            className="text-red-500 text-sm ml-2"
-          >
-            Eliminar
-          </button>
-        </div>
-        <HabitTracker habit={h} onUpdateLocal={actualizarLocalmente} />
-        <div className="text-sm text-gray-500 mt-2">
-          ✅ {h.resumen?.completados || 0} ❌ {h.resumen?.fallados || 0} 🚫 {h.resumen?.saltados || 0} 📅 {h.resumen?.diasTotales || 0}
-        </div>
+      <div className="mb-4">
+        <input
+          value={nuevoHabito}
+          onChange={(e) => setNuevoHabito(e.target.value)}
+          placeholder="Nuevo hábito"
+          className="border px-2 py-1 mr-2 rounded w-full mb-2"
+        />
+        <button
+          onClick={agregarHabito}
+          className="bg-blue-500 text-white px-4 py-1 rounded w-full"
+        >
+          Agregar
+        </button>
       </div>
-    ))}
-    <Logout /> {/* Aquí va el botón de cerrar sesión */}
-    <OfflineBanner />
-    <ConfirmDialog
-      open={confirmOpen}
-      title="Eliminar hábito"
-      message={habitToDelete ? `Esta acción no se puede deshacer. Para confirmar, escribe el nombre del hábito exactamente como aparece:
 
-${habitToDelete.nombre || ''}` : ''}
-      expectedText={habitToDelete?.nombre || ''}
-      confirmLabel="Eliminar"
-      cancelLabel="Cancelar"
-      onConfirm={doDelete}
-      onCancel={() => { setConfirmOpen(false); setHabitToDelete(null); }}
-    />
-  </div>
-);
+      {habitos.map((h) => (
+        <div key={h.id} className="bg-white shadow p-3 rounded mb-4">
+          <div className="flex justify-between items-center gap-3">
+            <input
+              value={h.nombre || ''}
+              onChange={(e) => editarHabito(h.id, e.target.value)}
+              className="border-b w-full text-lg font-medium"
+            />
+
+            {confirmingId === h.id ? (
+              <div className="flex items-center gap-2">
+                <button
+                  type="button"
+                  className="px-3 py-1.5 rounded bg-red-600 hover:bg-red-700 text-white text-sm"
+                  onClick={() => confirmDelete(h.id)}
+                >
+                  Confirmar
+                </button>
+                <button
+                  type="button"
+                  className="px-3 py-1.5 rounded bg-gray-100 hover:bg-gray-200 text-sm"
+                  onClick={cancelDelete}
+                >
+                  Cancelar
+                </button>
+              </div>
+            ) : (
+              <button
+                type="button"
+                className="text-red-600 hover:text-red-700 text-sm"
+                onClick={() => askDelete(h.id)}
+              >
+                Eliminar
+              </button>
+            )}
+          </div>
+
+          <HabitTracker habit={h} onUpdateLocal={actualizarLocalmente} />
+
+          <div className="text-sm text-gray-500 mt-2">
+            ✅ {h.resumen?.completados || 0} &nbsp;
+            ❌ {h.resumen?.fallados || 0} &nbsp;
+            🚫 {h.resumen?.saltados || 0} &nbsp;
+            📅 {h.resumen?.diasTotales || 0}
+          </div>
+        </div>
+      ))}
+
+      <Logout />
+      <OfflineBanner />
+    </div>
+  );
 }
 
 export default App;
