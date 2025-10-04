@@ -10,6 +10,7 @@ import HabitTracker from './components/HabitTracker';
 import ConfirmDialog from './components/ConfirmDialog';
 import DragHandle from './components/DragHandle';
 import Logout from './components/Logout';
+import OfflineBanner from './components/OfflineBanner';
 
 
 function App() {
@@ -189,6 +190,7 @@ function App() {
       </div>
     ))}
     <Logout /> {/* Aquí va el botón de cerrar sesión */}
+    <OfflineBanner />
     <ConfirmDialog
       open={confirmOpen}
       title="Eliminar hábito"

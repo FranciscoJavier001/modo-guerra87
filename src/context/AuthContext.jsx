@@ -13,6 +13,10 @@ import { app } from '../firebaseConfig';
 const auth = getAuth(app);
 const AuthContext = createContext();
 
+if (typeof navigator !== 'undefined' && !navigator.onLine) {
+  throw new Error('Sin conexión');
+}
+
 export function useAuth() {
   return useContext(AuthContext);
 }
