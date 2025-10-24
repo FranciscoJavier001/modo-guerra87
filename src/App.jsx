@@ -10,6 +10,10 @@ import HabitTracker from './components/HabitTracker';
 import Logout from './components/Logout';
 import OfflineBanner from './components/OfflineBanner';
 
+// 👇 NUEVOS IMPORTS (localStorage)
+import { TopReactionsBar } from './components/reactions/TopReactionsBar';
+import ReactionButton from './components/reactions/ReactionButton';
+
 function App() {
   const [habitos, setHabitos] = useState([]);
   const [nuevoHabito, setNuevoHabito] = useState('');
@@ -29,10 +33,6 @@ function App() {
     const nombre = (nuevoHabito || '').trim();
     if (!nombre) return;
 
-    // Si tu crearHabito espera SOLO el nombre:
-    // const creado = await crearHabito(nombre);
-
-    // Si tu crearHabito espera el objeto completo (como lo tienes):
     const habitoObj = {
       nombre,
       registros: {},
@@ -46,7 +46,7 @@ function App() {
 
   // Editar nombre
   const editarHabito = async (id, nuevoNombre) => {
-    const nombre = (nuevoNombre || '').trimStart(); // deja escribir, pero sin espacios iniciales
+    const nombre = (nuevoNombre || '').trimStart();
     setHabitos(prev => prev.map(h => (h.id === id ? { ...h, nombre } : h)));
     await actualizarHabito(id, { nombre });
   };
@@ -72,7 +72,7 @@ function App() {
 
   return (
     <div className="p-4 max-w-xl mx-auto">
-      <h1 className="text-2xl font-bold mb-4 text-center">Modo Guerra</h1>
+      <h1 className="text-2xl font-bold mb-4 text-center">EvolMe</h1>
 
       <div className="mb-4">
         <input
@@ -91,12 +91,19 @@ function App() {
 
       {habitos.map((h) => (
         <div key={h.id} className="bg-white shadow p-3 rounded mb-4">
-          <div className="flex justify-between items-center gap-3">
+          {/* Header de la tarjeta: título a la izquierda, Top-3 a la derecha */}
+          <div className="flex justify-between items-center gap-3 mt-1">
             <input
               value={h.nombre || ''}
               onChange={(e) => editarHabito(h.id, e.target.value)}
               className="border-b w-full text-lg font-medium"
             />
+
+            {/* 👇 Top 3 reacciones (sin contador). Solo aparece si hay votos */}
+            <TopReactionsBar scopeKey={`habit:${h.id}`} />
+
+            {/* 👇 Botón para sumar reacciones durante pruebas locales (puedes quitarlo luego) */}
+            <ReactionButton scopeKey={`habit:${h.id}`} />
 
             {confirmingId === h.id ? (
               <div className="flex items-center gap-2">
