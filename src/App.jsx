@@ -10,19 +10,22 @@ import HabitTracker from './components/HabitTracker';
 import Logout from './components/Logout';
 import OfflineBanner from './components/OfflineBanner';
 
-// 👇 NUEVOS IMPORTS (localStorage)
-import { TopReactionsBar } from './components/reactions/TopReactionsBar';
-import ReactionButton from './components/reactions/ReactionButton';
+// Acciones nuevas
+import HabitActionsCounter from "./components/actions/HabitActionsCounter";
+import HabitActionsButtons from "./components/actions/HabitActionsButtons";
 
-import HabitActions from './components/actions/HabitActions';
-
-import HabitActionsCounter from './components/actions/HabitActionsCounter';
-import HabitActionsButtons from './components/actions/HabitActionsButtons';
+// Pantalla Social (lupa)
+import Social from "./screens/Social";
 
 function App() {
   const [habitos, setHabitos] = useState([]);
   const [nuevoHabito, setNuevoHabito] = useState('');
-  const [confirmingId, setConfirmingId] = useState(null); // ← confirmación en 2 pasos
+  const [confirmingId, setConfirmingId] = useState(null);
+  const [view, setView] = useState("home"); // 'home' | 'social'
+
+  // true = estás viendo TU perfil (botones deshabilitados)
+  // false = estás viendo el perfil de un amigo (botones habilitados)
+  const isMyProfile = true;
 
   // Cargar hábitos
   useEffect(() => {
@@ -56,12 +59,12 @@ function App() {
     await actualizarHabito(id, { nombre });
   };
 
-  // Para que HabitTracker actualice localmente campos internos del hábito
+  // Actualización local de un hábito (desde HabitTracker)
   const actualizarLocalmente = (actualizado) => {
     setHabitos(prev => prev.map(h => (h.id === actualizado.id ? actualizado : h)));
   };
 
-  // --- Confirmación en dos pasos ---
+  // Confirmación en dos pasos para eliminar
   const askDelete = (id) => setConfirmingId(id);
   const cancelDelete = () => setConfirmingId(null);
   const confirmDelete = async (id) => {
@@ -75,9 +78,40 @@ function App() {
     }
   };
 
+  // -------- Vista Social (lupa) --------
+  if (view === "social") {
+    return (
+      <div className="p-4 max-w-xl mx-auto">
+        <div className="flex items-center justify-between mb-4">
+          <h1 className="text-2xl font-bold">Social</h1>
+          <button
+            className="rounded-xl border border-neutral-200 px-3 py-2 text-sm shadow-sm hover:bg-neutral-50"
+            onClick={() => setView("home")}
+          >
+            ← Volver
+          </button>
+        </div>
+        <Social />
+      </div>
+    );
+  }
+
+  // -------- Vista Home --------
   return (
     <div className="p-4 max-w-xl mx-auto">
-      <h1 className="text-2xl font-bold mb-4 text-center">EvolMe</h1>
+      <div className="mb-4 flex items-center justify-between">
+        <h1 className="text-2xl font-bold">EvolMe</h1>
+
+        {/* Lupa: abre la pantalla Social (A1) */}
+        <button
+          aria-label="Buscar amigos"
+          title="Buscar amigos"
+          onClick={() => setView("social")}
+          className="rounded-xl border border-neutral-200 px-3 py-2 text-sm shadow-sm hover:bg-neutral-50"
+        >
+          🔎
+        </button>
+      </div>
 
       <div className="mb-4">
         <input
@@ -96,19 +130,13 @@ function App() {
 
       {habitos.map((h) => (
         <div key={h.id} className="bg-white shadow p-3 rounded mb-4">
-          {/* Header de la tarjeta: título a la izquierda, Top-3 a la derecha */}
-          <div className="flex justify-between items-center gap-3 mt-5">
+          {/* Header: título + acciones de borrar */}
+          <div className="flex justify-between items-center gap-3 mt-2">
             <input
               value={h.nombre || ''}
               onChange={(e) => editarHabito(h.id, e.target.value)}
               className="border-b w-full text-lg font-medium mb-1"
             />
-
-            {/* 👇 Top 3 reacciones (sin contador). Solo aparece si hay votos */}
-            <TopReactionsBar scopeKey={`habit:${h.id}`} />
-
-            {/* 👇 Botón para sumar reacciones durante pruebas locales (puedes quitarlo luego) */}
-            <ReactionButton scopeKey={`habit:${h.id}`} />
 
             {confirmingId === h.id ? (
               <div className="flex items-center gap-3">
@@ -138,40 +166,30 @@ function App() {
             )}
           </div>
 
+          {/* Grid de días */}
           <HabitTracker habit={h} onUpdateLocal={actualizarLocalmente} />
-{/* Footer de la tarjeta: contadores (izq) + acciones (der) */}
-<div className="mt-2 flex items-center justify-between">
-  <div className="text-sm text-gray-500">
-    ✅ {h.resumen?.completados || 0} &nbsp;
-    ❌ {h.resumen?.fallados || 0} &nbsp;
-    🚫 {h.resumen?.saltados || 0} &nbsp;
-    📅 {h.resumen?.diasTotales || 0}
-  </div>
 
-  {/* Contador superior (emoji) */}
-  <HabitActionsCounter scopeKey={`habit:${h.id}`} />
-</div>
+          {/* Fila superior: contadores del hábito (izq) + contador de acciones (der) */}
+          <div className="mt-2 flex items-center justify-between">
+            <div className="text-sm text-gray-500">
+              ✅ {h.resumen?.completados || 0} &nbsp;
+              ❌ {h.resumen?.fallados || 0} &nbsp;
+              🚫 {h.resumen?.saltados || 0} &nbsp;
+              📅 {h.resumen?.diasTotales || 0}
+            </div>
+            <HabitActionsCounter scopeKey={`habit:${h.id}`} />
+          </div>
 
-{/* Debajo del cuadrado: botones en texto */}
-<HabitActionsButtons
-  scopeKey={`habit:${h.id}`}
-  shareData={{
-    title: "Mi hábito en EvolMe",
-    text:  `Estoy construyendo el hábito: "${h.nombre || "Hábito"}"`,
-    // url: 'https://tu-dominio.com' // opcional, default: URL actual
-  }}
-/>
-  {/* Derecha: contador likes/dislikes + botones (Like/Dislike/Share) */}
-  <HabitActions
-    scopeKey={`habit:${h.id}`}
-    shareData={{
-      title: "Mi hábito en EvolMe",
-      text: `Estoy construyendo el hábito: "${h.nombre || "Hábito"}"`,
-      // url: 'https://tu-dominio.com' // opcional; por defecto usa la URL actual
-    }}
-  />
-</div>
-        
+          {/* Botones debajo del grid (ocupando todo el ancho) */}
+          <HabitActionsButtons
+            scopeKey={`habit:${h.id}`}
+            disabled={isMyProfile} // deshabilita si estás en tu perfil
+            shareData={{
+              title: "Mi hábito en EvolMe",
+              text: `Estoy construyendo el hábito: "${h.nombre || "Hábito"}"`,
+            }}
+          />
+        </div>
       ))}
 
       <Logout />
