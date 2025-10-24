@@ -14,6 +14,11 @@ import OfflineBanner from './components/OfflineBanner';
 import { TopReactionsBar } from './components/reactions/TopReactionsBar';
 import ReactionButton from './components/reactions/ReactionButton';
 
+import HabitActions from './components/actions/HabitActions';
+
+import HabitActionsCounter from './components/actions/HabitActionsCounter';
+import HabitActionsButtons from './components/actions/HabitActionsButtons';
+
 function App() {
   const [habitos, setHabitos] = useState([]);
   const [nuevoHabito, setNuevoHabito] = useState('');
@@ -79,7 +84,7 @@ function App() {
           value={nuevoHabito}
           onChange={(e) => setNuevoHabito(e.target.value)}
           placeholder="Nuevo hábito"
-          className="border px-2 py-1 mr-2 rounded w-full mb-2"
+          className="border px-2 py-1 mr-2 rounded w-full mb-2 mt-2"
         />
         <button
           onClick={agregarHabito}
@@ -92,11 +97,11 @@ function App() {
       {habitos.map((h) => (
         <div key={h.id} className="bg-white shadow p-3 rounded mb-4">
           {/* Header de la tarjeta: título a la izquierda, Top-3 a la derecha */}
-          <div className="flex justify-between items-center gap-3 mt-1">
+          <div className="flex justify-between items-center gap-3 mt-5">
             <input
               value={h.nombre || ''}
               onChange={(e) => editarHabito(h.id, e.target.value)}
-              className="border-b w-full text-lg font-medium"
+              className="border-b w-full text-lg font-medium mb-1"
             />
 
             {/* 👇 Top 3 reacciones (sin contador). Solo aparece si hay votos */}
@@ -106,7 +111,7 @@ function App() {
             <ReactionButton scopeKey={`habit:${h.id}`} />
 
             {confirmingId === h.id ? (
-              <div className="flex items-center gap-2">
+              <div className="flex items-center gap-3">
                 <button
                   type="button"
                   className="px-3 py-1.5 rounded bg-red-600 hover:bg-red-700 text-white text-sm"
@@ -134,14 +139,39 @@ function App() {
           </div>
 
           <HabitTracker habit={h} onUpdateLocal={actualizarLocalmente} />
+{/* Footer de la tarjeta: contadores (izq) + acciones (der) */}
+<div className="mt-2 flex items-center justify-between">
+  <div className="text-sm text-gray-500">
+    ✅ {h.resumen?.completados || 0} &nbsp;
+    ❌ {h.resumen?.fallados || 0} &nbsp;
+    🚫 {h.resumen?.saltados || 0} &nbsp;
+    📅 {h.resumen?.diasTotales || 0}
+  </div>
 
-          <div className="text-sm text-gray-500 mt-2">
-            ✅ {h.resumen?.completados || 0} &nbsp;
-            ❌ {h.resumen?.fallados || 0} &nbsp;
-            🚫 {h.resumen?.saltados || 0} &nbsp;
-            📅 {h.resumen?.diasTotales || 0}
-          </div>
-        </div>
+  {/* Contador superior (emoji) */}
+  <HabitActionsCounter scopeKey={`habit:${h.id}`} />
+</div>
+
+{/* Debajo del cuadrado: botones en texto */}
+<HabitActionsButtons
+  scopeKey={`habit:${h.id}`}
+  shareData={{
+    title: "Mi hábito en EvolMe",
+    text:  `Estoy construyendo el hábito: "${h.nombre || "Hábito"}"`,
+    // url: 'https://tu-dominio.com' // opcional, default: URL actual
+  }}
+/>
+  {/* Derecha: contador likes/dislikes + botones (Like/Dislike/Share) */}
+  <HabitActions
+    scopeKey={`habit:${h.id}`}
+    shareData={{
+      title: "Mi hábito en EvolMe",
+      text: `Estoy construyendo el hábito: "${h.nombre || "Hábito"}"`,
+      // url: 'https://tu-dominio.com' // opcional; por defecto usa la URL actual
+    }}
+  />
+</div>
+        
       ))}
 
       <Logout />

@@ -33,12 +33,7 @@ export function TopReactionsBar({ scopeKey, reactions, className = "" }) {
       : Object.entries(localCounts);
 
     const withVotes = entries.filter(([, count]) => (count ?? 0) > 0);
-
-    // ✅ Si no hay votos → mostrar 🙂🙂🙂
-    if (withVotes.length === 0) {
-      return ["🙂", "🙂", "🙂"];
-    }
-
+    
     // Ordenar por más votados
     withVotes.sort((a, b) => {
       const diff = (b[1] ?? 0) - (a[1] ?? 0);
