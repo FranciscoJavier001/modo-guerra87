@@ -23,7 +23,7 @@ export default function HabitActionsCounter({ scopeKey, className = "" }) {
 
   return (
     <div className={`text-sm text-gray-500 select-none ${className}`}>
-      👍 {c.likes} &nbsp;&nbsp; 👎 {c.dislikes} &nbsp;&nbsp; 🔗 {c.shares}
+      👍🏻 {c.likes} &nbsp;&nbsp; 👎🏻 {c.dislikes} &nbsp;&nbsp; 🤙🏻 {c.shares}
     </div>
   );
 }

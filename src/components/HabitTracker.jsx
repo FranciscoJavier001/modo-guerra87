@@ -21,54 +21,57 @@ const estados = ['completado', 'fallado', 'saltado'];
 function HabitTracker({ habit, onUpdateLocal }) {
   const dias = getLastNDays(15);   // mismo número que antes
 
-  const toggleDia = async (fecha) => {
-    const actual = habit.registros?.[fecha];
-    let siguienteEstado;
+  // Asegúrate de tener este helper dentro del componente (o arriba del archivo)
+const nextEstado = (actual) => {
+  const orden = [null, 'completado', 'fallado', 'saltado', 'sobre'];
+  const idx = orden.indexOf(actual ?? null);
+  return orden[(idx + 1) % orden.length];
+};
 
-    if (!actual) siguienteEstado = 'completado';
-    else if (actual === 'completado') siguienteEstado = 'fallado';
-    else if (actual === 'fallado') siguienteEstado = 'saltado';
-    else if (actual === 'saltado') siguienteEstado = undefined;
+// Reemplaza tu toggleDia por este:
+const toggleDia = (fecha) => {
+  // Garantiza objeto
+  const registros = { ...(habit.registros || {}) };
 
-    const nuevosRegistros = { ...habit.registros };
-    if (siguienteEstado) nuevosRegistros[fecha] = siguienteEstado;
-    else delete nuevosRegistros[fecha];
+  const estadoActual = registros[fecha] ?? null;
+  const siguiente = nextEstado(estadoActual);
 
-    // Calcular resumen
-    const resumen = { completados: 0, fallados: 0, saltados: 0, diasTotales: 0 };
-    for (const estado of Object.values(nuevosRegistros)) {
-      if (estado === 'completado') resumen.completados++;
-      if (estado === 'fallado') resumen.fallados++;
-      if (estado === 'saltado') resumen.saltados++;
-    }
-    resumen.diasTotales = Object.keys(nuevosRegistros).length;
+  if (siguiente === null) {
+    delete registros[fecha];     // vuelve a “vacío”
+  } else {
+    registros[fecha] = siguiente; // guarda el nuevo estado
+  }
 
-    const actualizado = { ...habit, registros: nuevosRegistros, resumen };
-    onUpdateLocal(actualizado); // actualizar en frontend
-    await actualizarHabito(habit.id, actualizado); // guardar en Firestore
-  };
+  const actualizado = { ...habit, registros };
+  onUpdateLocal?.(actualizado);   // si ya tienes este callback para refrescar UI/guardar
+};
 
-  return (
-    <div className="flex gap-1 mt-2 ">
-      {dias.map(fecha => {
-        const estado = habit.registros?.[fecha];
-        const color =
-          estado === 'completado' ? 'bg-green-500' :
-          estado === 'fallado' ? 'bg-red-500' :
-          estado === 'saltado' ? 'bg-gray-300' :
-          'bg-white border';
+return (
+  <div className="flex gap-1 mt-2">
+    {dias.map((fecha) => {
+      const estado = habit.registros?.[fecha];
+      const color =
+        estado === 'completado'
+          ? 'bg-green-500 text-white shadow-sm'
+          : estado === 'fallado'
+          ? 'bg-red-500 text-white shadow-sm'
+          : estado === 'sobre'
+          ? 'bg-blue-600 text-white shadow-sm'
+          : estado === 'saltado'
+          ? 'bg-gray-300 text-gray-700'
+          : 'bg-white border border-gray-300';
 
-        return (
-          <div
-            key={fecha}
-            title={fecha}
-            className={`w-6 h-6 rounded cursor-pointer ${color}`}
-            onClick={() => toggleDia(fecha)}
-          ></div>
-        );
-      })}
-    </div>
-  );
+      return (
+        <div
+          key={fecha}
+          title={fecha}
+          className={`w-6 h-6 rounded cursor-pointer transition-all duration-150 hover:scale-110 ${color}`}
+          onClick={() => toggleDia(fecha)}
+        ></div>
+      );
+    })}
+  </div>
+);
 }
 
 export default HabitTracker;
